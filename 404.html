@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<!--
+  404.html for GitHub Pages SPA routing fallback.
+  This file loads the main index.html logic so that direct navigation to any route works.
+-->
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="refresh" content="0; url=/html-containter/" />
+  <title>Redirecting...</title>
+  <script>
+    // If JS is enabled, redirect to the root with the current path as a hash
+    (function() {
+      var path = window.location.pathname.replace(/^\/html-containter/, "");
+      if (path && path !== "/" && path !== "/index.html") {
+        window.location.replace("/html-containter/#" + path);
+      } else {
+        window.location.replace("/html-containter/");
+      }
+    })();
+  </script>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 4em; color: #444; }
+  </style>
+</head>
+<body>
+  <h1>Redirecting...</h1>
+  <p>If you are not redirected automatically, <a href="/html-containter/">click here</a>.</p>
+</body>
+</html>
