@@ -1,33 +1,24 @@
-# GitHub Pages Site with Dynamic Page Loading
 
-This site uses client-side routing to load HTML pages from the `/pages` folder.
 
-## Structure
+# HTML Container
 
-- `index.html` - Main entry point with navigation and routing logic
-- `/pages/` - Individual HTML page content
-- `/static/` - Static assets (images, etc.)
+This project is a simple, practical template for static websites. Just upload it to GitHub Pages (or any static hosting), and your site is instantly live—no build process or backend required.
 
-## Adding New Pages
+## Purpose
 
-1. Create a new HTML file in the `/pages` folder (e.g., `mypage.html`)
-2. Add the page to the `PAGES` array in `index.html`:
-   \`\`\`javascript
-   { name: 'My Page', file: 'mypage.html' }
-   \`\`\`
-3. The page will be accessible at `/mypage`
+- Make it easy to share multiple HTML pages as a single site
+- No frameworks, no build tools—just HTML, CSS, and JavaScript
+- Instantly view new pages by uploading them to the `/pages` folder
 
-## Deployment to GitHub Pages
+## How to Use
 
-1. Push this repository to GitHub
-2. Go to Settings → Pages
-3. Set source to the branch you want to deploy (usually `main` or `gh-pages`)
-4. Your site will be available at `https://username.github.io/repository-name/`
+1. Upload this repository to GitHub and enable GitHub Pages (or use any static web host).
+2. Add new HTML files to the `/pages` folder. Each file becomes a new page on your site.
+3. The navigation menu and directory update automatically—no code changes needed.
+4. Access each page at `/pagename` (e.g., `/about`).
 
-## URL Access
+## Why Use This?
 
-- Home: `/` or `/index.html`
-- Directory: `/directory`
-- Any page: `/pagename` (e.g., `/about`, `/contact`)
-
-The `.nojekyll` file ensures GitHub Pages doesn't process the site with Jekyll.
+- See your changes immediately after upload—no build or deploy step
+- Great for documentation, portfolios, or sharing multiple HTML demos
+- Simple, clean, and easy to extend

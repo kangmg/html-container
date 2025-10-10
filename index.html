@@ -235,6 +235,12 @@
     .animate-fadeIn {
       animation: fadeIn 0.2s ease-out;
     }
+    /* 강제로 contentArea 내부의 페이지가 영역을 벗어나지 않도록 함 */
+    #contentArea > * {
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow: auto;
+    }
   </style>
 </body>
 </html>
