@@ -103,7 +103,7 @@
 
         // script 태그가 포함되어 있으면 iframe으로 로드
         if (/<script[\s>]/i.test(html)) {
-          contentArea.innerHTML = `<iframe src="${BASE_PATH}/pages/${pageName}.html" style="width:100%;min-height:600px;border:none;box-sizing:border-box;max-width:100%"></iframe>`;
+          contentArea.innerHTML = `<div style="resize:both;overflow:auto;min-width:320px;min-height:600px;max-width:100%;"><iframe src="${BASE_PATH}/pages/${pageName}.html" style="width:100%;height:800px;min-height:600px;border:none;box-sizing:border-box;display:block;"></iframe></div>`;
         } else {
           contentArea.innerHTML = html;
         }
@@ -113,7 +113,7 @@
           document.getElementById('currentPageName').textContent = page.name;
         }
 
-        document.title = page ? `${page.name} - My Site` : 'My Site';
+        document.title = page ? `${page.name} - HTML Share` : 'HTML Share';
       } catch (error) {
         contentArea.innerHTML = `
           <div class="bg-white rounded-lg shadow-sm p-8 md:p-12 border border-gray-200">
