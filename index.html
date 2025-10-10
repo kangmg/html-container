@@ -86,9 +86,10 @@
       return pageName;
     }
 
+
     async function loadPage(pageName) {
       const contentArea = document.getElementById('contentArea');
-      
+
       if (pageName === 'directory') {
         loadDirectoryPage();
         return;
@@ -97,15 +98,21 @@
       try {
         const response = await fetch(`${BASE_PATH}/pages/${pageName}.html`);
         if (!response.ok) throw new Error('Page not found');
-        
+
         const html = await response.text();
-        contentArea.innerHTML = html;
-        
+
+        // script 태그가 포함되어 있으면 iframe으로 로드
+        if (/<script[\s>]/i.test(html)) {
+          contentArea.innerHTML = `<iframe src="${BASE_PATH}/pages/${pageName}.html" style="width:100%;min-height:600px;border:none;box-sizing:border-box;max-width:100%"></iframe>`;
+        } else {
+          contentArea.innerHTML = html;
+        }
+
         const page = PAGES.find(p => p.file === `${pageName}.html`);
         if (page) {
           document.getElementById('currentPageName').textContent = page.name;
         }
-        
+
         document.title = page ? `${page.name} - My Site` : 'My Site';
       } catch (error) {
         contentArea.innerHTML = `
@@ -234,6 +241,9 @@
     }
     .animate-fadeIn {
       animation: fadeIn 0.2s ease-out;
+    }
+    html, body {
+      overflow-y: scroll;
     }
     /* 강제로 contentArea 내부의 페이지가 영역을 벗어나지 않도록 함 */
     #contentArea > * {
