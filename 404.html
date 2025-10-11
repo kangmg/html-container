@@ -6,14 +6,14 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="refresh" content="0; url=/html-containter/" />
+  <meta http-equiv="refresh" content="0; url=/html-container/" />
   <title>Redirecting...</title>
   <script>
     // If JS is enabled, redirect to the root with the current path as a hash
     (function() {
       var path = window.location.pathname.replace(/^\/html-container/, "");
       if (path && path !== "/" && path !== "/index.html") {
-        window.location.replace("/html-containter/#" + path);
+        window.location.replace("/html-container/#" + path);
       } else {
         window.location.replace("/html-container/");
       }
