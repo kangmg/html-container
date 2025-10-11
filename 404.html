@@ -11,7 +11,7 @@
   <script>
     // If JS is enabled, redirect to the root with the current path as a hash
     (function() {
-      var path = window.location.pathname.replace(/^\/html-containter/, "");
+      var path = window.location.pathname.replace(/^\/html-container/, "");
       if (path && path !== "/" && path !== "/index.html") {
         window.location.replace("/html-containter/#" + path);
       } else {
