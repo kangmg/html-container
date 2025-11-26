@@ -81,7 +81,8 @@
       if (path === '/directory' || path === '/directory.html') {
         return 'directory';
       }
-      const pageName = path.replace(/^\//, '').replace(/\.html$/, '');
+      // Handle both /pages/filename.html and /filename format
+      const pageName = path.replace(/^\/pages\//, '').replace(/^\//, '').replace(/\.html$/, '');
       return pageName;
     }
 
@@ -215,9 +216,9 @@
       if (link && link.href.includes(BASE_PATH) && !link.id) {
         e.preventDefault();
         const url = new URL(link.href);
-        window.history.pushState({}, '', url.pathname);
-        const pageName = getPageFromURL();
-        if (pageName) {
+        const pageName = url.pathname.replace(BASE_PATH, '').replace(/^\//, '').replace(/\.html$/, '');
+        if (pageName && pageName !== 'index') {
+          window.history.pushState({}, '', `${BASE_PATH}/${pageName}`);
           loadPage(pageName);
         } else {
           location.reload();

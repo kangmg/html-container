@@ -9,11 +9,12 @@
   <meta http-equiv="refresh" content="0; url=/html-container/" />
   <title>Redirecting...</title>
   <script>
-    // If JS is enabled, redirect to the root with the current path as a hash
+    // If JS is enabled, redirect to the root with the current path preserved
     (function() {
       var path = window.location.pathname.replace(/^\/html-container/, "");
       if (path && path !== "/" && path !== "/index.html") {
-        window.location.replace("/html-container/#" + path);
+        // Support direct path access (e.g., /html-container/viewer_HB -> /html-container/)
+        window.location.replace("/html-container/");
       } else {
         window.location.replace("/html-container/");
       }
