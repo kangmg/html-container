@@ -2512,18 +2512,19 @@ function detectHydrogenBonds(positions, symbols, threshold, existingBonds) {
 }
 
 function createHydrogenBond(p1, p2, atomScale) {
-    // Create a dashed line representation of hydrogen bond with thicker black appearance
+    // Create a dashed cylinder representation of hydrogen bond
     const distance = p1.distanceTo(p2);
     const direction = new THREE.Vector3().subVectors(p2, p1).normalize();
     
-    // Use a line with dashed appearance using LineSegments
+    // Hydrogen bond thickness: 0.7 times of regular bond thickness
+    const hBondRadius = 0.1 * 0.7;  // 0.07 (regular bond is 0.1)
+    
+    // Create dashed segments
     const dashLength = 0.3;  // Length of each dash
     const gapLength = 0.1;   // Length of gaps
     
-    const points = [];
+    const group = new THREE.Group();
     
-    let currentPos = p1.clone();
-    let segmentStart = currentPos.clone();
     let distanceTraveled = 0;
     let isDash = true;
     
@@ -2532,38 +2533,37 @@ function createHydrogenBond(p1, p2, atomScale) {
         const remainingDistance = distance - distanceTraveled;
         const actualLength = Math.min(segmentLength, remainingDistance);
         
-        currentPos = p1.clone().add(direction.clone().multiplyScalar(distanceTraveled + actualLength));
-        
-        if (isDash) {
-            points.push(segmentStart.clone());
-            points.push(currentPos.clone());
+        if (isDash && actualLength > 0.01) {
+            // Create cylinder for this dash segment
+            const segmentStart = p1.clone().add(direction.clone().multiplyScalar(distanceTraveled));
+            const segmentEnd = p1.clone().add(direction.clone().multiplyScalar(distanceTraveled + actualLength));
+            
+            const geometry = new THREE.CylinderGeometry(hBondRadius, hBondRadius, actualLength, 8, 1);
+            const material = new THREE.MeshBasicMaterial({
+                color: 0x000000,  // Black
+                transparent: true,
+                opacity: 0.9,
+                depthTest: true,
+                depthWrite: true
+            });
+            
+            const cylinder = new THREE.Mesh(geometry, material);
+            
+            // Position at midpoint of segment
+            const midPoint = segmentStart.clone().add(segmentEnd).multiplyScalar(0.5);
+            cylinder.position.copy(midPoint);
+            
+            // Orient cylinder along the bond direction
+            cylinder.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
+            
+            group.add(cylinder);
         }
         
         distanceTraveled += actualLength;
-        segmentStart = currentPos.clone();
         isDash = !isDash;
     }
     
-    if (points.length < 2) {
-        // Fallback: if dashing didn't create enough points, just draw a line
-        points.push(p1);
-        points.push(p2);
-    }
-    
-    const geometry = new THREE.BufferGeometry().setFromPoints(points);
-    
-    // Use thick black color for hydrogen bonds
-    const material = new THREE.LineBasicMaterial({
-        color: 0x000000,  // Black
-        linewidth: 4,
-        transparent: true,
-        opacity: 0.9,
-        depthTest: true,
-        depthWrite: false
-    });
-    
-    const hydrogenBondLine = new THREE.LineSegments(geometry, material);
-    return hydrogenBondLine;
+    return group;
 }
 
 </script>
