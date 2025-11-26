@@ -2517,11 +2517,11 @@ function createHydrogenBond(p1, p2, atomScale) {
     const direction = new THREE.Vector3().subVectors(p2, p1).normalize();
     
     // Hydrogen bond thickness: 0.7 times of regular bond thickness
-    const hBondRadius = 0.1 * 0.7;  // 0.07 (regular bond is 0.1)
+    const hBondRadius = 0.1 * 0.5;  // 0.07 (regular bond is 0.1)
     
     // Create dashed segments
     const dashLength = 0.2;  // Length of each dash
-    const gapLength = 0.05;   // Length of gaps
+    const gapLength = 0.1;   // Length of gaps
     
     const group = new THREE.Group();
     
@@ -2542,7 +2542,7 @@ function createHydrogenBond(p1, p2, atomScale) {
             const material = new THREE.MeshBasicMaterial({
                 color: 0x000000,  // Black
                 transparent: true,
-                opacity: 0.9,
+                opacity: 0.7,
                 depthTest: true,
                 depthWrite: true
             });
