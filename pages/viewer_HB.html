@@ -2419,13 +2419,53 @@ function detectHydrogenBonds(positions, symbols, threshold, existingBonds) {
     const halogens = ['N', 'O', 'F'];  // Atoms that can accept hydrogen bonds
     const hydrogen = 'H';
     
-    // Create a set of existing bonds to exclude them
+    // Create a set of existing bonds to exclude them and build connectivity graph
     const bondsSet = new Set();
+    const adjacencyList = Array.from({ length: positions.length }, () => []);
+    
     if (existingBonds) {
         existingBonds.forEach(bond => {
             const key1 = Math.min(bond[0], bond[1]) + '_' + Math.max(bond[0], bond[1]);
             bondsSet.add(key1);
+            // Build adjacency list for connectivity
+            adjacencyList[bond[0]].push(bond[1]);
+            adjacencyList[bond[1]].push(bond[0]);
         });
+    }
+    
+    // Function to check if a hydrogen is bonded to N, O, or F
+    function isHydrogenBondedToNOF(hydrogenIdx, adjList) {
+        const neighbors = adjList[hydrogenIdx];
+        for (const neighbor of neighbors) {
+            if (halogens.includes(symbols[neighbor])) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    // Function to calculate minimum distance between two atoms through bonds
+    function getMinConnectivityDistance(atomA, atomB, adjList) {
+        if (atomA === atomB) return 0;
+        
+        const queue = [[atomA, 0]];
+        const visited = new Set([atomA]);
+        
+        while (queue.length > 0) {
+            const [current, dist] = queue.shift();
+            
+            if (current === atomB) return dist;
+            if (dist > 10) return 999;  // Limit search depth
+            
+            for (const neighbor of adjList[current]) {
+                if (!visited.has(neighbor)) {
+                    visited.add(neighbor);
+                    queue.push([neighbor, dist + 1]);
+                }
+            }
+        }
+        
+        return 999;  // Not connected
     }
     
     // Find all H-X pairs where X is N, O, or F
@@ -2439,14 +2479,29 @@ function detectHydrogenBonds(positions, symbols, threshold, existingBonds) {
                 const sym2 = symbols[j];
                 
                 // Check if this is H-X or X-H where X is N, O, or F
-                const isHBond = (sym1 === hydrogen && halogens.includes(sym2)) ||
-                               (sym2 === hydrogen && halogens.includes(sym1));
+                let hydrogenIdx = -1;
+                let nofIdx = -1;
                 
-                if (isHBond) {
+                if (sym1 === hydrogen && halogens.includes(sym2)) {
+                    hydrogenIdx = i;
+                    nofIdx = j;
+                } else if (sym2 === hydrogen && halogens.includes(sym1)) {
+                    hydrogenIdx = j;
+                    nofIdx = i;
+                }
+                
+                if (hydrogenIdx !== -1 && nofIdx !== -1) {
                     // Exclude existing bonds (covalent O-H, N-H, F-H)
                     const bondKey = Math.min(i, j) + '_' + Math.max(i, j);
                     if (!bondsSet.has(bondKey)) {
-                        hydrogenBonds.push([i, j]);
+                        // Check if hydrogen is bonded to N, O, or F (polar hydrogen)
+                        if (isHydrogenBondedToNOF(hydrogenIdx, adjacencyList)) {
+                            // Check connectivity distance - only include if atoms are 3+ bonds apart
+                            const connectivityDist = getMinConnectivityDistance(i, j, adjacencyList);
+                            if (connectivityDist >= 3) {
+                                hydrogenBonds.push([i, j]);
+                            }
+                        }
                     }
                 }
             }
@@ -2457,16 +2512,14 @@ function detectHydrogenBonds(positions, symbols, threshold, existingBonds) {
 }
 
 function createHydrogenBond(p1, p2, atomScale) {
-    // Create a dashed line representation of hydrogen bond
+    // Create a dashed line representation of hydrogen bond with thicker black appearance
     const distance = p1.distanceTo(p2);
     const direction = new THREE.Vector3().subVectors(p2, p1).normalize();
-    const midPoint = new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5);
     
     // Use a line with dashed appearance using LineSegments
     const dashLength = 0.3;  // Length of each dash
     const gapLength = 0.1;   // Length of gaps
     
-    const segments = [];
     const points = [];
     
     let currentPos = p1.clone();
@@ -2499,12 +2552,12 @@ function createHydrogenBond(p1, p2, atomScale) {
     
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
     
-    // Use a cyan/blue color for hydrogen bonds with lower opacity
+    // Use thick black color for hydrogen bonds
     const material = new THREE.LineBasicMaterial({
-        color: 0x00CED1,  // Dark turquoise
-        linewidth: 2,
+        color: 0x000000,  // Black
+        linewidth: 4,
         transparent: true,
-        opacity: 0.7,
+        opacity: 0.9,
         depthTest: true,
         depthWrite: false
     });
@@ -5758,10 +5811,10 @@ if (typeof define === 'function' && define.amd) {
                         <div class="control-group">
                             <div class="control-label">
                                 <span>Hydrogen Bond Threshold (Å)</span>
-                                <span class="slider-value" id="h-bond-threshold-value">4.0</span>
+                                <span class="slider-value" id="h-bond-threshold-value">2.5</span>
                             </div>
                             <div class="slider-container">
-                                <input type="range" min="3" max="5" step="0.1" value="4.0" class="slider" id="h-bond-threshold">
+                                <input type="range" min="1.5" max="3.5" step="0.1" value="2.5" class="slider" id="h-bond-threshold">
                             </div>
                         </div>
 
@@ -6104,7 +6157,7 @@ let settings = {
     showCell: true,
     showBond: true,
     showHBond: false,
-    hBondThreshold: 4.0,
+    hBondThreshold: 2.5,
     showShading: false,
     showEnergyPlot: false,
     showForces: false,
