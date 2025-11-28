@@ -2416,7 +2416,7 @@ function createHalfBondGrey(start, end, color, bondThickness) {
 
 function detectHydrogenBonds(positions, symbols, threshold, existingBonds) {
     const hydrogenBonds = [];
-    const halogens = ['N', 'O', 'F'];  // Atoms that can accept hydrogen bonds
+    const acceptors = ['N', 'O', 'F'];  // Atoms that can accept hydrogen bonds
     const hydrogen = 'H';
     
     // Create a set of existing bonds to exclude them and build connectivity graph
@@ -2433,15 +2433,16 @@ function detectHydrogenBonds(positions, symbols, threshold, existingBonds) {
         });
     }
     
-    // Function to check if a hydrogen is bonded to N, O, or F
-    function isHydrogenBondedToNOF(hydrogenIdx, adjList) {
-        const neighbors = adjList[hydrogenIdx];
+    // Function to get all adjacent hydrogens (bonded to any element)
+    function getAdjacentHydrogens(atomIdx, adjList) {
+        const hydrogens = [];
+        const neighbors = adjList[atomIdx];
         for (const neighbor of neighbors) {
-            if (halogens.includes(symbols[neighbor])) {
-                return true;
+            if (symbols[neighbor] === hydrogen) {
+                hydrogens.push(neighbor);
             }
         }
-        return false;
+        return hydrogens;
     }
     
     // Function to calculate minimum distance between two atoms through bonds
@@ -2468,40 +2469,33 @@ function detectHydrogenBonds(positions, symbols, threshold, existingBonds) {
         return 999;  // Not connected
     }
     
-    // Find all H-X pairs where X is N, O, or F
+    // Find all hydrogen bonds: (any atom)-H···N/O/F
+    // Process all atoms that have adjacent hydrogens
     for (let i = 0; i < positions.length; i++) {
-        for (let j = i + 1; j < positions.length; j++) {
-            const dist = positions[i].distanceTo(positions[j]);
+        // Get adjacent hydrogens for any atom
+        const adjacentHydrogens = getAdjacentHydrogens(i, adjacencyList);
+        
+        for (const hydrogenIdx of adjacentHydrogens) {
+            const hydrogenPos = positions[hydrogenIdx];
             
-            // Check if distance is within hydrogen bond threshold
-            if (dist <= threshold) {
-                const sym1 = symbols[i];
-                const sym2 = symbols[j];
+            // Find potential acceptors (N, O, F)
+            for (let j = 0; j < positions.length; j++) {
+                // Acceptor must be N, O, or F
+                if (!acceptors.includes(symbols[j])) continue;
                 
-                // Check if this is H-X or X-H where X is N, O, or F
-                let hydrogenIdx = -1;
-                let nofIdx = -1;
+                // Skip if hydrogen is already bonded to this acceptor
+                const bondKey = Math.min(hydrogenIdx, j) + '_' + Math.max(hydrogenIdx, j);
+                if (bondsSet.has(bondKey)) continue;
                 
-                if (sym1 === hydrogen && halogens.includes(sym2)) {
-                    hydrogenIdx = i;
-                    nofIdx = j;
-                } else if (sym2 === hydrogen && halogens.includes(sym1)) {
-                    hydrogenIdx = j;
-                    nofIdx = i;
-                }
+                const acceptorPos = positions[j];
+                const dist = hydrogenPos.distanceTo(acceptorPos);
                 
-                if (hydrogenIdx !== -1 && nofIdx !== -1) {
-                    // Exclude existing bonds (covalent O-H, N-H, F-H)
-                    const bondKey = Math.min(i, j) + '_' + Math.max(i, j);
-                    if (!bondsSet.has(bondKey)) {
-                        // Check if hydrogen is bonded to N, O, or F (polar hydrogen)
-                        if (isHydrogenBondedToNOF(hydrogenIdx, adjacencyList)) {
-                            // Check connectivity distance - only include if atoms are 3+ bonds apart
-                            const connectivityDist = getMinConnectivityDistance(i, j, adjacencyList);
-                            if (connectivityDist >= 3) {
-                                hydrogenBonds.push([i, j]);
-                            }
-                        }
+                // Check if distance is within hydrogen bond threshold
+                if (dist <= threshold) {
+                    // Check connectivity distance - only include if atoms are 3+ bonds apart
+                    const connectivityDist = getMinConnectivityDistance(i, j, adjacencyList);
+                    if (connectivityDist >= 3) {
+                        hydrogenBonds.push([hydrogenIdx, j]);
                     }
                 }
             }
